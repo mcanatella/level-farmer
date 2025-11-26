@@ -1,4 +1,4 @@
-PHONY: lint
+.PHONY: lint mypy
 
 lint:
 	black . --check
