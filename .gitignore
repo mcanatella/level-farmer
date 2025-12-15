@@ -4,3 +4,4 @@ config.*.yaml
 __pycache__/
 venv/
 *_historical/
+.mypy_cache/

@@ -1,3 +1,5 @@
+from typing import Dict, Any
+
 class Level:
     def __init__(
         self,
@@ -17,12 +19,12 @@ class Level:
         self.reward_points = reward_points
         self.risk_points = risk_points
 
-    def update(self, value):
+    def update(self, value) -> None:
         self.value = value
 
 
 class SignalDispatcher:
-    def __init__(self, logger, levels=[]):
+    def __init__(self, logger, levels=[]) -> None:
         self.logger = logger
 
         # Convert levels to dictionary for fast lookups by value or name depending on if the level
@@ -36,7 +38,7 @@ class SignalDispatcher:
 
         self.last_level_traded = None
 
-    def check(self, price, timestamp=None):
+    def check(self, price, timestamp=None) -> Dict[str, Any] | None:
         if not self.levels:
             return None
 

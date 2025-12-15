@@ -88,7 +88,7 @@ class DiscoverSettings(BaseModel):
 
         return cls(**data)
 
-    def validate(self):
+    def validate(self) -> None:
         # Add custom validation logic here
         if self.data_source == "csv":
             if not self.data_directory:
