@@ -17,11 +17,12 @@ async def run_engine_async(
         if asyncio.iscoroutine(res):
             await res
 
+
 def run_engine(
     ticker: Ticker,
     logger: logging.Logger,
     state: Dict[str, Any],
     ontick: Callable[[Tick, logging.Logger, Dict[str, Any]], None],
-) -> None: 
+) -> None:
     for tick in ticker:
         ontick(tick, logger, state)

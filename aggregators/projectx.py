@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Optional
 import logging
 import math
 
+
 class ProjectXAggregator:
     def __init__(
         self,
@@ -12,8 +13,8 @@ class ProjectXAggregator:
         market_data_client: MarketData,
         contract_id: str,
         days: Optional[int] = 10,
-        candle_length: Optional[int] = 5, # TODO: Actually use this
-        unit: Optional[str] = "minutes", # TODO: Actually use this
+        candle_length: Optional[int] = 5,  # TODO: Actually use this
+        unit: Optional[str] = "minutes",  # TODO: Actually use this
     ) -> None:
         self.logger = logger
         self.market_data_client = market_data_client
@@ -28,7 +29,7 @@ class ProjectXAggregator:
 
     def get_candles(self) -> List[Dict[str, Any]]:
         self._poll()
-        
+
         return self.candles
 
     def _poll(self) -> None:

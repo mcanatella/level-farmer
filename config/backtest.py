@@ -3,6 +3,7 @@ from typing import Dict, List
 
 import yaml
 
+
 class BacktestSettings(BaseModel):
     backtest_date: str
     data_dir: str
@@ -28,10 +29,10 @@ class BacktestSettings(BaseModel):
 
         if args.backtest_date is not None:
             overrides["backtest_date"] = args.backtest_date
-        
+
         if args.data_dir is not None:
             overrides["data_dir"] = args.data_dir
-        
+
         if args.symbols is not None:
             overrides["symbols"] = args.symbols
 
@@ -52,13 +53,12 @@ class BacktestSettings(BaseModel):
 
         if args.top_n is not None:
             overrides["top_n"] = args.top_n
-        
+
         if overrides:
             data.update(overrides)
-        
+
         return cls(**data)
-        
-    
+
     def validate(self) -> None:
         pass
 

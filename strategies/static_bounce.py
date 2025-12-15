@@ -5,6 +5,7 @@ import logging
 import numpy as np
 import pandas as pd
 
+
 class StaticLevel:
     def __init__(
         self,
@@ -22,6 +23,7 @@ class StaticLevel:
 
     def update(self, value: float) -> None:
         self.value = value
+
 
 class StaticBounce:
     def __init__(
@@ -66,14 +68,14 @@ class StaticBounce:
         self.levels = {}
         for lvl in self.support + self.resistance:
             self.levels[lvl.value] = lvl
-            
+
         # Last level traded to avoid retests
         self.last_level_traded = None
 
     def check(self, price, timestamp=None) -> Dict[str, Any] | None:
         if not self.levels:
             return None
-        
+
         # Check if the current price is in proximity to any of our levels and signal accordingly
         signals = []
         for level_key in self.levels:
@@ -178,8 +180,8 @@ class StaticBounce:
                 resistance_candidates.append((high, volume, ts))
 
         # Return top support and resistance levels as a list of dicts
-        support_dicts = self._cluster_levels(support_candidates)[:self.top_n]
-        resistance_dicts = self._cluster_levels(resistance_candidates)[:self.top_n]
+        support_dicts = self._cluster_levels(support_candidates)[: self.top_n]
+        resistance_dicts = self._cluster_levels(resistance_candidates)[: self.top_n]
 
         # Create StaticLevel instances
         self.support = [
@@ -202,29 +204,33 @@ class StaticBounce:
             )
             for lvl in resistance_dicts
         ]
-    
+
     def print_static_levels(self) -> None:
         headers = ["Level", "Hits", "Score"]
 
         print("\nTop Support Levels:")
-        print(tabulate(
-            [
-                (f"{lvl.value:.2f}", len(lvl.hits), f"{lvl.score:.2f}")
-                for lvl in self.support
-            ],
-            headers,
-            tablefmt="pretty",
-        ))
+        print(
+            tabulate(
+                [
+                    (f"{lvl.value:.2f}", len(lvl.hits), f"{lvl.score:.2f}")
+                    for lvl in self.support
+                ],
+                headers,
+                tablefmt="pretty",
+            )
+        )
 
         print("\nTop Resistance Levels:")
-        print(tabulate(
-            [
-                (f"{lvl.value:.2f}", len(lvl.hits), f"{lvl.score:.2f}")
-                for lvl in self.resistance
-            ],
-            headers,
-            tablefmt="pretty",
-        ))
+        print(
+            tabulate(
+                [
+                    (f"{lvl.value:.2f}", len(lvl.hits), f"{lvl.score:.2f}")
+                    for lvl in self.resistance
+                ],
+                headers,
+                tablefmt="pretty",
+            )
+        )
 
     def _cluster_levels(self, candidates) -> List[Dict[str, Any]]:
         if not candidates:
@@ -264,7 +270,9 @@ class StaticBounce:
             avg_volume = float(np.mean(cluster["volumes"]))
 
             # recency weights for this cluster
-            ages = np.array([(now - ts).total_seconds() for ts in cluster["timestamps"]])
+            ages = np.array(
+                [(now - ts).total_seconds() for ts in cluster["timestamps"]]
+            )
             recency_weights = np.exp(-lam * ages)
 
             # effective recency factor = average weight in [0, 1]

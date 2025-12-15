@@ -17,6 +17,7 @@ import pytest
 
 from config import init_backtest_logger
 
+
 def init_null_logger() -> logging.Logger:
     """
     Logger that won't spam stdout during tests.
@@ -27,7 +28,10 @@ def init_null_logger() -> logging.Logger:
     logger.addHandler(logging.NullHandler())
     return logger
 
-def static_bounce_handler(tick: Tick, logger: logging.Logger, state: Dict[str, Any]) -> None:
+
+def static_bounce_handler(
+    tick: Tick, logger: logging.Logger, state: Dict[str, Any]
+) -> None:
     if state["position"] is None:
         state["position"] = state["strategy"].check(tick.price, tick.t)
         if state["position"] is None:
@@ -37,16 +41,24 @@ def static_bounce_handler(tick: Tick, logger: logging.Logger, state: Dict[str, A
     profit_loss = 0
     if state["position"]["direction"] == "LONG":
         if tick.price >= state["position"]["take_profit"]:
-            profit_loss = round((state["position"]["take_profit"] - market_price) * 1000, 2)
+            profit_loss = round(
+                (state["position"]["take_profit"] - market_price) * 1000, 2
+            )
         elif tick.price <= state["position"]["stop_loss"]:
-            profit_loss = round((state["position"]["stop_loss"] - market_price) * 1000, 2)
+            profit_loss = round(
+                (state["position"]["stop_loss"] - market_price) * 1000, 2
+            )
         else:
             return
     else:
         if tick.price <= state["position"]["take_profit"]:
-            profit_loss = round((market_price - state["position"]["take_profit"]) * 1000, 2)
+            profit_loss = round(
+                (market_price - state["position"]["take_profit"]) * 1000, 2
+            )
         elif tick.price >= state["position"]["stop_loss"]:
-            profit_loss = round((market_price - state["position"]["stop_loss"]) * 1000, 2)
+            profit_loss = round(
+                (market_price - state["position"]["stop_loss"]) * 1000, 2
+            )
         else:
             return
 
@@ -69,6 +81,7 @@ def static_bounce_handler(tick: Tick, logger: logging.Logger, state: Dict[str, A
 
     # Reset position
     state["position"] = None
+
 
 async def run_static_bounce_backtest_async(
     data_dir: Path,
@@ -99,7 +112,7 @@ async def run_static_bounce_backtest_async(
         start_date,
         end_date,
         symbols,
-        candle_length=5, # TODO: Support more than 5 min candles
+        candle_length=5,  # TODO: Support more than 5 min candles
         unit="minutes",
     )
     candles = aggregator.get_candles()
@@ -134,6 +147,7 @@ async def run_static_bounce_backtest_async(
 
     return state["total_pnl"]
 
+
 def run_static_bounce_backtest(
     data_dir: Path,
     backtest_date: date,
@@ -152,17 +166,18 @@ def run_static_bounce_backtest(
         )
     )
 
+
 @pytest.mark.parametrize(
     "proximity_threshold,reward_points,risk_points,price_tolerance,"
     "min_separation,top_n",
     [
         pytest.param(
-            0.03,   # proximity_threshold
-            0.20,   # reward_points
-            0.10,   # risk_points
-            0.05,   # price_tolerance
-            10,     # min_separation
-            5,      # top_n
+            0.03,  # proximity_threshold
+            0.20,  # reward_points
+            0.10,  # risk_points
+            0.05,  # price_tolerance
+            10,  # min_separation
+            5,  # top_n
             id="baseline",
         ),
     ],

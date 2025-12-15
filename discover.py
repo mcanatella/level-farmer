@@ -17,7 +17,9 @@ def main(args) -> None:
     aggregator: Aggregator
     if settings.data_source == "projectx":
         auth = Auth(
-            base_url=settings.api.base, username=settings.api.user, api_key=settings.api.key
+            base_url=settings.api.base,
+            username=settings.api.user,
+            api_key=settings.api.key,
         )
         jwt_token = auth.login()
         market_data_client = MarketData(settings.api.base, jwt_token)
@@ -49,9 +51,9 @@ def main(args) -> None:
     strategy = StaticBounce(
         logger,
         aggregator.get_candles(),
-        proximity_threshold=0.00, # Unused when simply discovering signal data
-        reward_points=0.00, # Unused when simply discovering signal data
-        risk_points=0.00, # Unused when simply discovering signal data
+        proximity_threshold=0.00,  # Unused when simply discovering signal data
+        reward_points=0.00,  # Unused when simply discovering signal data
+        risk_points=0.00,  # Unused when simply discovering signal data
         price_tolerance=settings.price_tolerance,
         min_separation=settings.min_separation,
         top_n=settings.top_n,

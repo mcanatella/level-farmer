@@ -1,5 +1,6 @@
 from typing import Dict, Any
 
+
 class Level:
     def __init__(
         self,

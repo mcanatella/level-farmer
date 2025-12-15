@@ -22,13 +22,17 @@ def _floor_5min(dt: datetime) -> datetime:
 def _parse_yyyymmdd(s: str) -> date:
     return date(int(s[:4]), int(s[4:6]), int(s[6:8]))
 
-def _csv_aggregator_handler(tick: Tick, logger: logging.Logger, state: Dict[str, Any]) -> None:
+
+def _csv_aggregator_handler(
+    tick: Tick, logger: logging.Logger, state: Dict[str, Any]
+) -> None:
     # nonlocal buckets, symbol_volumes, current_symbol
 
     state["symbol_volumes"][tick.symbol] += tick.size
     if (
         tick.symbol != state["current_symbol"]
-        and state["symbol_volumes"][tick.symbol] > state["symbol_volumes"][state["current_symbol"]]
+        and state["symbol_volumes"][tick.symbol]
+        > state["symbol_volumes"][state["current_symbol"]]
     ):
         # Rollover to the next contract symbol when its volume exceeds the current one
         logger.info(
@@ -58,6 +62,7 @@ def _csv_aggregator_handler(tick: Tick, logger: logging.Logger, state: Dict[str,
         rec["c"] = tick.price
         rec["v"] += tick.size
 
+
 class CsvAggregator:
     def __init__(
         self,
@@ -66,8 +71,8 @@ class CsvAggregator:
         start_date: date,
         end_date: date,
         symbols: List[str],
-        candle_length: Optional[int] = 5, # TODO: Actually use this
-        unit: Optional[str] = "minutes", # TODO: Actually use this
+        candle_length: Optional[int] = 5,  # TODO: Actually use this
+        unit: Optional[str] = "minutes",  # TODO: Actually use this
     ) -> None:
         self.logger = logger
         self.data_dir = Path(data_dir)
@@ -82,7 +87,7 @@ class CsvAggregator:
 
         # TODO: Define candle type instead of using a Dict
         self.candles: List[Dict[str, Any]] = []
-    
+
     def get_candles(self) -> List[Dict[str, Any]]:
         self._poll()
 

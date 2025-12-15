@@ -6,13 +6,16 @@ from typing import Any, AsyncIterator, Iterator, Protocol
 class Ticker(Protocol):
     def __iter__(self) -> Iterator[Tick]: ...
 
+
 # Pseudo interface for anything that can stream tick objects asynchronously
 class AsyncTicker(Protocol):
     def __aiter__(self) -> AsyncIterator[Tick]: ...
 
+
 # Pseudo interface for anything that can aggregate candles
 class Aggregator(Protocol):
     def get_candles(self) -> list[dict[str, Any]]: ...
+
 
 # Pseudo interface for anything that can implement a trading strategy
 class Strategy(Protocol):
