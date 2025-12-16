@@ -12,7 +12,11 @@ class AsyncTicker(Protocol):
     def __aiter__(self) -> AsyncIterator[Tick]: ...
 
 
-# Pseudo interface for anything that can calculate support and resistance levels
-# TODO: Calculate should return a list of Level objects
-class Calculator(Protocol):
-    def calculate(self) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]: ...
+# Pseudo interface for anything that can aggregate candles
+class Aggregator(Protocol):
+    def get_candles(self) -> list[dict[str, Any]]: ...
+
+
+# Pseudo interface for anything that can implement a trading strategy
+class Strategy(Protocol):
+    def check(self, price: float, timestamp: Any = None) -> dict[str, Any] | None: ...
