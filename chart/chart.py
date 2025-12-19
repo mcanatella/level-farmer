@@ -1,11 +1,13 @@
-from projectx_client import Auth, MarketData, Orders
-from .signal_dispatcher import SignalDispatcher
-from signalrcore.hub_connection_builder import HubConnectionBuilder
-from .candle_poller import CandlePoller
-
 import logging
 import threading
 import time as t
+
+from signalrcore.hub_connection_builder import HubConnectionBuilder
+
+from projectx_client import Auth, MarketData, Orders
+
+from .candle_poller import CandlePoller
+from .signal_dispatcher import SignalDispatcher
 
 
 class Chart:

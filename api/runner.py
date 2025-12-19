@@ -1,14 +1,15 @@
-from .handlers import static_bounce_handler
-from aggregators import CsvAggregator
-from core import Strategy, run_engine_async
+import logging
 from dataclasses import dataclass, field
 from datetime import date, timedelta
 from pathlib import Path
+from typing import Any, Dict, List, Literal, Optional, Union
+
+from aggregators import CsvAggregator
+from core import Strategy, run_engine_async
 from strategies import StaticBounce
 from tickers import CsvTicker
-from typing import Any, Dict, Literal, List, Optional, Union
 
-import logging
+from .handlers import static_bounce_handler
 
 
 @dataclass(frozen=True)

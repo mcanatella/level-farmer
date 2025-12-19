@@ -3,11 +3,11 @@ from __future__ import annotations
 import asyncio
 import csv
 import time
-
-from core import Tick
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import AsyncIterator, Optional, Iterator, Iterable
+from typing import AsyncIterator, Iterable, Iterator, Optional
+
+from core import Tick
 
 
 # Helper that prunes down to the mircosecond and returns a datetime object

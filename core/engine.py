@@ -1,9 +1,9 @@
-from .protocols import AsyncTicker, Ticker
-from .types import Tick
-from typing import Any, Awaitable, Callable, Dict
-
 import asyncio
 import logging
+from typing import Any, Awaitable, Callable, Dict
+
+from .protocols import AsyncTicker, Ticker
+from .types import Tick
 
 
 async def run_engine_async(

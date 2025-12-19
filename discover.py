@@ -1,11 +1,11 @@
-from aggregators import ProjectXAggregator, CsvAggregator
+import argparse
+from datetime import datetime, timedelta
+
+from aggregators import CsvAggregator, ProjectXAggregator
 from config import DiscoverSettings, init_backtest_logger
 from core import Aggregator
-from datetime import datetime, timedelta
 from projectx_client import Auth, MarketData
 from strategies import StaticBounce
-
-import argparse
 
 
 def main(args) -> None:

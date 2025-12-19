@@ -1,11 +1,12 @@
 # mypy: ignore-errors
 
+import argparse
+
 from calculators import CsvCalculator, ProjectXCalculator
+
 from chart import Chart, Level
 from config import BotSettings, DiscoverSettings, init_strucutred_logger
 from projectx_client import Auth, MarketData, Orders
-
-import argparse
 
 
 def main(args):

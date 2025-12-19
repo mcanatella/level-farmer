@@ -1,18 +1,10 @@
-from config import (
-    BacktestSettings,
-    init_backtest_logger,
-)
-from datetime import datetime
-
 import argparse
 import asyncio
-
-from api import (
-    StaticBounceParams,
-    BacktestRequest,
-    run_static_bounce_async,
-)
+from datetime import datetime
 from pathlib import Path
+
+from api import BacktestRequest, StaticBounceParams, run_static_bounce_async
+from config import BacktestSettings, init_backtest_logger
 
 
 async def main(args) -> None:

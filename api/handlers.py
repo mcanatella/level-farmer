@@ -1,10 +1,11 @@
-from colorama import Fore
-from config import log_with_color
-from core import Tick
+import logging
 from typing import Any, Dict
 from zoneinfo import ZoneInfo
 
-import logging
+from colorama import Fore
+
+from config import log_with_color
+from core import Tick
 
 
 def static_bounce_handler(

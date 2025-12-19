@@ -1,9 +1,9 @@
+import threading
+import time as t
 from datetime import datetime, timedelta, timezone
 
 import numpy as np
 import pandas
-import threading
-import time as t
 
 
 class CandlePoller:

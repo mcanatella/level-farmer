@@ -1,8 +1,8 @@
-from colorama import init, Style
-from pythonjsonlogger import jsonlogger
+import logging
 from typing import Any
 
-import logging
+from colorama import Style, init
+from pythonjsonlogger import jsonlogger
 
 
 def init_null_logger() -> logging.Logger:

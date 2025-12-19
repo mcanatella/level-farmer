@@ -1,18 +1,15 @@
-from api import (
-    StaticBounceParams,
-    BacktestRequest,
-    BacktestResult,
-    run_static_bounce_async,
-)
-from config import init_null_logger
-from datetime import date
-from pathlib import Path
-from tabulate import tabulate
-from typing import List
-
 import asyncio
 import math
+from datetime import date
+from pathlib import Path
+from typing import List
+
 import pytest
+from tabulate import tabulate
+
+from api import (BacktestRequest, BacktestResult, StaticBounceParams,
+                 run_static_bounce_async)
+from config import init_null_logger
 
 
 def run_static_bounce_backtest(

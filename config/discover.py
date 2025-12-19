@@ -1,8 +1,8 @@
-from pydantic import BaseModel
-from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing import Dict, Optional, List
+from typing import Dict, List, Optional
 
 import yaml
+from pydantic import BaseModel
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class DiscoverApiSettings(BaseModel):
