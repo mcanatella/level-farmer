@@ -7,8 +7,12 @@ from typing import List
 import pytest
 from tabulate import tabulate
 
-from api import (BacktestRequest, BacktestResult, StaticBounceParams,
-                 run_static_bounce_async)
+from api import (
+    BacktestRequest,
+    BacktestResult,
+    StaticBounceParams,
+    run_static_bounce_async,
+)
 from config import init_null_logger
 
 
