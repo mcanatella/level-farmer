@@ -1,9 +1,9 @@
-from datetime import datetime, timedelta, timezone
-from projectx_client import MarketData
-from typing import Any, Dict, List, Optional
-
 import logging
 import math
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, List, Optional
+
+from projectx_client import MarketData
 
 
 class ProjectXAggregator:

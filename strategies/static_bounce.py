@@ -1,9 +1,9 @@
-from tabulate import tabulate
+import logging
 from typing import Any, Dict, List, Optional
 
-import logging
 import numpy as np
 import pandas as pd
+from tabulate import tabulate
 
 
 class StaticLevel:

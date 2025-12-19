@@ -1,6 +1,6 @@
-from .types import Tick
-from .protocols import Aggregator, AsyncTicker, Strategy, Ticker
 from .engine import run_engine, run_engine_async
+from .protocols import Aggregator, AsyncTicker, Strategy, Ticker
+from .types import Tick
 
 __all__ = [
     "Aggregator",

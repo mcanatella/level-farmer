@@ -1,5 +1,6 @@
-from .types import Tick
 from typing import Any, AsyncIterator, Iterator, Protocol
+
+from .types import Tick
 
 
 # Pseudo interface for anything that can stream tick objects synchronously

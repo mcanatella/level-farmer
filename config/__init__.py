@@ -1,7 +1,12 @@
-from .discover import DiscoverSettings, DiscoverApiSettings
 from .backtest import BacktestSettings
 from .bot import BotSettings
-from .logging import init_backtest_logger, init_strucutred_logger, log_with_color
+from .discover import DiscoverApiSettings, DiscoverSettings
+from .logging import (
+    init_backtest_logger,
+    init_null_logger,
+    init_strucutred_logger,
+    log_with_color,
+)
 
 __all__ = [
     "DiscoverApiSettings",
@@ -10,5 +15,5 @@ __all__ = [
     "DiscoverSettings",
     "init_backtest_logger",
     "init_strucutred_logger",
-    "log_with_color",
+    "init_null_logger" "log_with_color",
 ]

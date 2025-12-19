@@ -1,15 +1,32 @@
-from colorama import init, Style
-from pythonjsonlogger import jsonlogger
+import logging
 from typing import Any
 
-import logging
+from colorama import Style, init
+from pythonjsonlogger import jsonlogger
+
+
+def init_null_logger() -> logging.Logger:
+    """
+    Logger that won't spam stdout during tests.
+    """
+    logger = logging.getLogger("static_bounce_test")
+    logger.setLevel(logging.INFO)
+    logger.handlers.clear()
+    logger.addHandler(logging.NullHandler())
+    return logger
 
 
 def init_backtest_logger():
+    """
+    Logger for backtests with timestamps and colored output.
+    """
     init(autoreset=True)
 
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
+
+    # If this logger already has handlers such as pytest param runs, clear them
+    logger.handlers.clear()
 
     handler = logging.StreamHandler()
 

@@ -1,11 +1,11 @@
-from core import Tick, run_engine
-from datetime import date, datetime
-from pathlib import Path
-from tickers import CsvTicker
-from typing import Any, Dict, List, Optional
-
 import logging
 import re
+from datetime import date, datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+from core import Tick, run_engine
+from tickers import CsvTicker
 
 FNAME_PREFIX = "glbx-mdp3-"
 FNAME_POSTFIX = ".trades.csv"

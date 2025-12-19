@@ -1,7 +1,7 @@
-from pydantic import BaseModel
 from typing import Dict, List
 
 import yaml
+from pydantic import BaseModel
 
 
 class BacktestSettings(BaseModel):
