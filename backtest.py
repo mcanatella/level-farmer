@@ -17,10 +17,11 @@ async def main(args) -> None:
 
     params = StaticBounceParams(
         kind="static_bounce",
-        proximity_threshold=0.03,
-        reward_points=0.20,
-        risk_points=0.10,
-        price_tolerance=settings.price_tolerance,
+        tick_size=0.01,
+        proximity_threshold=3,
+        reward_ticks=20,
+        risk_ticks=10,
+        tick_tolerance=settings.tick_tolerance,
         min_separation=settings.min_separation,
         top_n=settings.top_n,
         decay_half_life_days=15.0,

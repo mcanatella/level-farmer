@@ -15,8 +15,8 @@ class BacktestSettings(BaseModel):
     top_n: int = 5
     min_separation: int = 10
 
-    # It doesn't make sense to have defaults for price_tolerance, as it must be tuned depending on the asset being analyzed
-    price_tolerance: float
+    # It doesn't make sense to have defaults for tick_tolerance, as it must be tuned depending on the asset being analyzed
+    tick_tolerance: int
 
     @classmethod
     def build(cls, args) -> "BacktestSettings":
@@ -45,8 +45,8 @@ class BacktestSettings(BaseModel):
         if args.unit is not None:
             overrides["unit"] = args.unit
 
-        if args.price_tolerance is not None:
-            overrides["price_tolerance"] = args.price_tolerance
+        if args.tick_tolerance is not None:
+            overrides["tick_tolerance"] = args.tick_tolerance
 
         if args.min_separation is not None:
             overrides["min_separation"] = args.min_separation
@@ -87,7 +87,7 @@ class BacktestSettings(BaseModel):
             help="List of symbols to analyze",
         )
 
-        # Calculator settings
+        # Aggregator settings
         parser.add_argument(
             "--days",
             type=int,
@@ -99,10 +99,12 @@ class BacktestSettings(BaseModel):
             type=str,
             help="The unit used to measure the candle length; only minutes or hours supported",
         )
+
+        # Static bounce strategy settings
         parser.add_argument(
-            "--price-tolerance",
-            type=float,
-            help="Price range within which levels are considered the same",
+            "--tick-tolerance",
+            type=int,
+            help="Tick range within which levels are considered the same",
         )
         parser.add_argument(
             "--min-separation",

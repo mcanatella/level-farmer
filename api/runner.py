@@ -15,10 +15,11 @@ from .handlers import static_bounce_handler
 @dataclass(frozen=True)
 class StaticBounceParams:
     kind: Literal["static_bounce"] = "static_bounce"
-    proximity_threshold: float = 0.03
-    reward_points: float = 0.20  # TODO: change this to reward_ticks
-    risk_points: float = 0.10  # TODO: change this to risk_ticks
-    price_tolerance: float = 0.05
+    tick_size: float = 0.01
+    proximity_threshold: int = 3
+    reward_ticks: int = 20
+    risk_ticks: int = 10
+    tick_tolerance: int = 5
     min_separation: int = 10
     top_n: int = 5
     decay_half_life_days: float = 15.0
@@ -36,13 +37,31 @@ StrategyParams = Union[StaticBounceParams, VwapFadeParams]
 
 
 @dataclass(frozen=True)
-class BacktestRequest:
+class CsvDataSource:
+    kind: Literal["csv"] = "csv"
     data_dir: Path
-    backtest_date: date
     symbols: List[str]
+
+
+@dataclass(frozen=True)
+class ProjectXDataSource:
+    kind: Literal["projectx"] = "projectx"
+    base_url: str
+    username: str
+    api_key: str
+    contract_id: str
+
+
+DataSource = Union[CsvDataSource, ProjectXDataSource]
+
+
+@dataclass(frozen=True)
+class BacktestRequest:
+    backtest_date: date
     lookback_days: int = 10
     candle_length: int = 5
     unit: str = "minutes"
+    data_source: DataSource = field(default_factory=CsvDataSource)
     params: StrategyParams = field(default_factory=StaticBounceParams)
 
 
@@ -59,10 +78,11 @@ def _build_strategy(
         return StaticBounce(
             logger,
             candles,
+            params.tick_size,
             params.proximity_threshold,
-            params.reward_points,
-            params.risk_points,
-            params.price_tolerance,
+            params.reward_ticks,
+            params.risk_ticks,
+            params.tick_tolerance,
             params.min_separation,
             params.top_n,
             params.decay_half_life_days,
