@@ -81,10 +81,10 @@ async def run_static_bounce_async(
 
         trades_file = f"{config.strategy.aggregation_params.data_source.data_dir}/glbx-mdp3-{d:%Y%m%d}.trades.csv"
 
-        # trades_file = Path(config.strategy.aggregation_params.data_source.data_dir) / f"glbx-mdp3-{d:%Y%m%d}.trades.csv"
-        ticker = CsvTicker(
-            trades_file, config.strategy.aggregation_params.data_source.symbols
-        )
+        if aggregator.current_symbol is None:
+            raise ValueError("No symbol loaded in aggregator for backtest ticker")
+
+        ticker = CsvTicker(trades_file, [aggregator.current_symbol])
 
         await run_engine_async(ticker, logger, state, static_bounce_handler)
 

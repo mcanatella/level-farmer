@@ -5,7 +5,7 @@ import csv
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import AsyncIterator, Iterable, Iterator, Optional
+from typing import AsyncIterator, Iterable, Iterator, List, Optional
 
 from core import Tick
 
@@ -29,7 +29,7 @@ class CsvTicker:
     def __init__(
         self,
         csv_path: str | Path,
-        want_symbols: list[str],
+        want_symbols: List[str],
         start_time: Optional[datetime] = None,
         end_time: Optional[datetime] = None,
         throttle: float = 0.0,

@@ -1,5 +1,5 @@
 import argparse
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 
 from aggregators import CsvAggregator, ProjectXAggregator
 from config import DiscoverSettings, init_backtest_logger
@@ -76,13 +76,14 @@ def main(args) -> None:
             strategy_conf.strategy_params.top_n,
             strategy_conf.strategy_params.decay_half_life_days,
         )
-        strategy.print_static_levels()  # TODO: perhaps change this function name to something more generic like "print_strategy_data"
     elif strategy_conf.strategy_params.kind == "vwap_fade":
         raise NotImplementedError("VWAP Fade strategy not implemented")
     else:
         raise ValueError(
             f"Unsupported strategy kind: {strategy_conf.strategy_params.kind}"
         )
+
+    print(strategy)
 
 
 if __name__ == "__main__":

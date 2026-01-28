@@ -2,7 +2,7 @@ import logging
 import re
 from datetime import date, datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Set
 
 from core import Tick, run_engine
 from tickers import CsvTicker
@@ -26,21 +26,41 @@ def _parse_yyyymmdd(s: str) -> date:
 def _csv_aggregator_handler(
     tick: Tick, logger: logging.Logger, state: Dict[str, Any]
 ) -> None:
-    # nonlocal buckets, symbol_volumes, current_symbol
+    # Ignore ticks from symbols not in allowed list
+    if tick.symbol not in state["allowed_symbols"]:
+        return
 
-    state["symbol_volumes"][tick.symbol] += tick.size
-    if (
-        tick.symbol != state["current_symbol"]
-        and state["symbol_volumes"][tick.symbol]
-        > state["symbol_volumes"][state["current_symbol"]]
-    ):
-        # Rollover to the next contract symbol when its volume exceeds the current one
-        logger.info(
-            f"Switching from {state["current_symbol"]} to {tick.symbol} at {tick.t.isoformat()} with volumes: {state["symbol_volumes"]}"
-        )
+    # Initialize current_symbol lazily
+    if state["current_symbol"] is None:
         state["current_symbol"] = tick.symbol
 
-    if tick.symbol != state["current_symbol"]:
+    state["symbols_used"].add(tick.symbol)
+
+    # Update symbol volumes
+    state["symbol_volumes"][tick.symbol] += tick.size
+
+    vols = state["symbol_volumes"]
+    current = state["current_symbol"]
+
+    pct_margin = 0.10  # 10% margin to switch contracts
+    abs_margin = 200  # contracts lead required (tune)
+    min_total_volume = 1000  # minimum total volume to consider switching
+
+    leader = max(vols, key=vols.get)
+    if leader != current:
+        total = sum(vols.values())
+        lead = vols[leader] - vols[current]
+
+        if total >= min_total_volume and (
+            lead >= abs_margin or vols[leader] >= vols[current] * (1 + pct_margin)
+        ):
+            logger.info(
+                f"Switching from {current} to {leader} at {tick.t.isoformat()} with volumes: {vols}"
+            )
+            state["current_symbol"] = leader
+            current = leader
+
+    if tick.symbol != current:
         return
 
     bkt = _floor_5min(tick.t), tick.symbol
@@ -88,6 +108,9 @@ class CsvAggregator:
         # TODO: Define candle type instead of using a Dict
         self.candles: List[Dict[str, Any]] = []
 
+        self.symbols_used: Set[str] = set()
+        self.current_symbol: Optional[str] = None
+
     def get_candles(self) -> List[Dict[str, Any]]:
         self._poll()
 
@@ -101,7 +124,7 @@ class CsvAggregator:
         for sym in self.symbols:
             symbol_volumes[sym] = 0
 
-        current_symbol = self.start_symbol
+        # current_symbol = self.start_symbol
 
         # Collect matching files by filename date
         files: List[Path] = []
@@ -116,7 +139,9 @@ class CsvAggregator:
         state: Dict[str, Any] = {
             "buckets": buckets,
             "symbol_volumes": symbol_volumes,
-            "current_symbol": current_symbol,
+            "current_symbol": None,
+            "allowed_symbols": self.symbols,
+            "symbols_used": set(),
         }
 
         for fp in files:
@@ -127,6 +152,15 @@ class CsvAggregator:
             # Reset symbol volumes for next file
             for k in symbol_volumes:
                 symbol_volumes[k] = 0
+
+        if not buckets:
+            raise RuntimeError(
+                f"No candles produced. current_symbol={state['current_symbol']} "
+                f"symbols={self.symbols} vols={symbol_volumes} used={state['symbols_used']}"
+            )
+
+        self.symbols_used = state["symbols_used"]
+        self.current_symbol = state["current_symbol"]
 
         # Flatten to list of dicts, sorted by time then symbol
         out: List[Dict[str, Any]] = []

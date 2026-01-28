@@ -9,3 +9,12 @@ class Tick:
     size: int
     side: str
     symbol: str
+
+    def delta(self) -> int:
+        if self.side == "B":
+            return self.size
+
+        if self.side == "A":
+            return -self.size
+
+        return 0
