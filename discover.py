@@ -75,6 +75,7 @@ def main(args) -> None:
             strategy_conf.strategy_params.min_separation,
             strategy_conf.strategy_params.top_n,
             strategy_conf.strategy_params.decay_half_life_days,
+            strategy_conf.strategy_params.precision,
         )
     elif strategy_conf.strategy_params.kind == "vwap_fade":
         raise NotImplementedError("VWAP Fade strategy not implemented")

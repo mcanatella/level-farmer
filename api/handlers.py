@@ -7,6 +7,8 @@ from colorama import Fore
 from config import log_with_color
 from core import Tick
 
+from calculations import DeltaEvent
+
 
 def static_bounce_handler(
     tick: Tick, logger: logging.Logger, state: Dict[str, Any]
@@ -15,6 +17,7 @@ def static_bounce_handler(
     Handler for processing ticks in a StaticBounce backtest.
     Updates the state with PnL when a position is closed.
     """
+    # Handle position
     if state["position"] is None:
         state["position"] = state["strategy"].check(tick, tick.t)
         if state["position"] is None:
