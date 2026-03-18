@@ -60,9 +60,6 @@ async def run_backtest_async(
     config: BacktestConfig,
     logger: Optional[logging.Logger] = None,
 ) -> List[BacktestResult]:
-    if logger is None:
-        logger = logging.getLogger("backtest_runner")
-
     if config.strategy.strategy_params.kind == "static_bounce":
         return await run_static_bounce_async(config, logger)
     elif config.strategy.strategy_params.kind == "static_bounce_with_delta":
@@ -78,6 +75,9 @@ async def run_static_bounce_async(
     logger: Optional[logging.Logger] = None,
 ) -> List[BacktestResult]:
     results: List[BacktestResult] = []
+    if logger is None:
+        logger = logging.getLogger("static_bounce_backtest_runner")
+
     for bt_date in config.dates:
         d = datetime.strptime(bt_date, "%Y%m%d").date()
 
@@ -142,4 +142,9 @@ async def run_static_bounce_with_delta_async(
     config: BacktestConfig,
     logger: Optional[logging.Logger] = None,
 ) -> List[BacktestResult]:
-    pass
+    if logger is None:
+        logger = logging.getLogger("static_bounce_with_delta_backtest_runner")
+
+    return (
+        []
+    )  # Placeholder for future implementation of StaticBounceWithDelta backtesting

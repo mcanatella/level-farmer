@@ -54,6 +54,9 @@ def main(args) -> None:
             start_date,
             today,
             strategy_conf.aggregation_params.data_source.symbols,
+            strategy_conf.aggregation_params.data_source.pct_margin,
+            strategy_conf.aggregation_params.data_source.abs_margin,
+            strategy_conf.aggregation_params.data_source.min_total_volume,
             candle_length=strategy_conf.aggregation_params.candle_length,
             unit=strategy_conf.aggregation_params.unit,
         )
