@@ -2,32 +2,28 @@
 
 A modular, event-driven trading framework for developing, testing, and deploying systematic futures trading strategies.
 
-This project is designed to support **multiple strategy types**, with reusable building blocks such as:
+This project is designed to support multiple strategy types, with reusable building blocks such as:
 
 - Static price levels
 - Order flow (delta, volume)
 - Time-based and event-based signals
 - Custom indicators and analytics
 
-The goal is to create a **clean, extensible system** where strategies can be developed once and reused across:
+The goal is to create a clean, extensible system where strategies can be developed once and reused across:
 
 - Backtesting
 - Simulation / optimization
 - Live trading or signal dispatch
 
----
-
 ## 🚀 Overview
 
-This framework processes **tick-level market data** and allows strategies to:
+This framework processes tick-level market data and allows strategies to:
 
 1. Analyze historical context (e.g. levels, indicators)
 2. React to incoming ticks in real time
 3. Emit structured trade signals
 
-It is designed around **deterministic, event-driven execution**, making it suitable for both research and production systems.
-
----
+It is designed around deterministic, event-driven execution, making it suitable for both research and production systems.
 
 ## 🧱 Core Architecture
 ```
@@ -55,17 +51,14 @@ Tick Data → Engine → Strategy → Signal → (Execution / Dispatch)
 
 #### 4. **Data Sources**
 - CSV (historical tick data)
-- 🔜 API (TopstepX / ProjectX)
-- 🔜 Live market feeds
-
----
+- API (TopstepX / ProjectX)
+- Live market feeds
 
 ## 🧠 Strategy Design Philosophy
 
-Strategies are **modular, self-contained units** that operate on tick data.
+Strategies are modular, self-contained units that operate on tick data.
 
 ### Minimal Interface
-
 ```python
 class Strategy:
     def check(self, tick: Tick) -> Optional[Signal]:
