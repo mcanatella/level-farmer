@@ -21,7 +21,9 @@ class DeltaWindow:
         self.sum_volume: int = 0
 
     def on_tick(self, tick: Tick) -> None:
-        self.events.append(DeltaEvent(t=tick.t, delta=tick.delta(), price=tick.price, size=tick.size))
+        self.events.append(
+            DeltaEvent(t=tick.t, delta=tick.delta(), price=tick.price, size=tick.size)
+        )
         self.sum_delta += tick.delta()
         self.sum_volume += tick.size
 

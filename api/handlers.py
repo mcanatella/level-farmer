@@ -4,10 +4,9 @@ from zoneinfo import ZoneInfo
 
 from colorama import Fore
 
+from calculations import DeltaEvent
 from config import log_with_color
 from core import Tick
-
-from calculations import DeltaEvent
 
 
 def static_bounce_handler(

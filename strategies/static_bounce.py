@@ -147,7 +147,11 @@ class StaticBounce:
 
         support_table = tabulate(
             [
-                (f"{lvl['price']:.{self.precision}f}", len(lvl["hits"]), f"{lvl['score']:.2f}")
+                (
+                    f"{lvl['price']:.{self.precision}f}",
+                    len(lvl["hits"]),
+                    f"{lvl['score']:.2f}",
+                )
                 for lvl in self.support
             ],
             headers,
@@ -156,7 +160,11 @@ class StaticBounce:
 
         resistance_table = tabulate(
             [
-                (f"{lvl['price']:.{self.precision}f}", len(lvl["hits"]), f"{lvl['score']:.2f}")
+                (
+                    f"{lvl['price']:.{self.precision}f}",
+                    len(lvl["hits"]),
+                    f"{lvl['score']:.2f}",
+                )
                 for lvl in self.resistance
             ],
             headers,

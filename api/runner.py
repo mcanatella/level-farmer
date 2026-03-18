@@ -30,7 +30,9 @@ def _build_strategy(
             config.strategy_params.precision,
         )
     elif config.strategy_params.kind == "static_bounce_with_delta":
-        delta_window = DeltaWindow(window_seconds=config.strategy_params.delta_window_seconds)
+        delta_window = DeltaWindow(
+            window_seconds=config.strategy_params.delta_window_seconds
+        )
         return StaticBounceWithDelta(
             logger,
             candles,
@@ -66,7 +68,9 @@ async def run_backtest_async(
     elif config.strategy.strategy_params.kind == "static_bounce_with_delta":
         return await run_static_bounce_with_delta_async(config, logger)
     else:
-        raise ValueError(f"Unsupported strategy kind: {config.strategy.strategy_params.kind}")
+        raise ValueError(
+            f"Unsupported strategy kind: {config.strategy.strategy_params.kind}"
+        )
 
 
 async def run_static_bounce_async(

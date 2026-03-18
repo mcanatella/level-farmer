@@ -1,12 +1,13 @@
-from calculations import calculate_static_levels, DeltaEvent, DeltaWindow
-from core import Tick
+import logging
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any, Dict, List
 
 from tabulate import tabulate
 
-import logging
+from calculations import DeltaEvent, DeltaWindow, calculate_static_levels
+from core import Tick
+
 
 @dataclass
 class ZoneAttempt:
@@ -14,8 +15,9 @@ class ZoneAttempt:
     A localized "touch attempt" around a specific level.
     Only includes orderflow that happens during the attempt.
     """
+
     level: float
-    direction: str             # "LONG" or "SHORT"
+    direction: str  # "LONG" or "SHORT"
     start_t: datetime
     expire_t: datetime
     start_price: float
@@ -64,11 +66,11 @@ class StaticBounceWithDelta:
         decay_half_life_days: float,
         precision: int,
         delta_window: DeltaWindow,
-        attempt_seconds: int = 30, # how long to wait for confirmation after price enters zone
-        delta_ratio_threshold: float = 0.20, # 20% imbalance
-        min_response_ticks: int = 3, # prove bounce/rejection
-        max_penetration_ticks: int = 4, # avoid "knife through level"
-        cooldown_seconds: int = 120, # per-level cooldown to prevent spam on chop
+        attempt_seconds: int = 30,  # how long to wait for confirmation after price enters zone
+        delta_ratio_threshold: float = 0.20,  # 20% imbalance
+        min_response_ticks: int = 3,  # prove bounce/rejection
+        max_penetration_ticks: int = 4,  # avoid "knife through level"
+        cooldown_seconds: int = 120,  # per-level cooldown to prevent spam on chop
     ) -> None:
         self.logger = logger
         self.candles = candles
@@ -117,10 +119,12 @@ class StaticBounceWithDelta:
 
         # NEW: attempt state and cooldown tracking
         self.attempt: ZoneAttempt | None = None
-        self.cooldowns: Dict[float, datetime] = {} # level -> last_trade_time (datetime)
-    
+        self.cooldowns: Dict[float, datetime] = (
+            {}
+        )  # level -> last_trade_time (datetime)
+
     def _in_proximity(self, price: float, level: float) -> bool:
-        # Note multiplying proximity_threshold by tick_size to convert from ticks to price units for proper 
+        # Note multiplying proximity_threshold by tick_size to convert from ticks to price units for proper
         # comparison.
         return abs(price - level) <= (self.proximity_threshold * self.tick_size)
 
@@ -128,9 +132,9 @@ class StaticBounceWithDelta:
         last = self.cooldowns.get(level)
         if last is None:
             return False
-        
+
         return (now - last).total_seconds() < self.cooldown_seconds
-    
+
     def _start_attempt(self, level: float, direction: str, tick: Tick) -> ZoneAttempt:
         now = tick.t
         expire_t = now + timedelta(seconds=self.attempt_seconds)
@@ -144,7 +148,7 @@ class StaticBounceWithDelta:
             max_price=tick.price,
             last_price=tick.price,
         )
-    
+
     def _attempt_confirmed(self, attempt: ZoneAttempt) -> bool:
         """
         Confirmation logic:
@@ -196,7 +200,7 @@ class StaticBounceWithDelta:
 
         if not self.levels:
             return None
-        
+
         # --- (A) If an attempt is active, update it first ---
         if self.attempt is not None:
             # If attempt expired, drop it
@@ -245,8 +249,12 @@ class StaticBounceWithDelta:
                                 "delta_ratio": self.attempt.delta_ratio(),
                                 "sum_delta": self.attempt.sum_delta,
                                 "sum_volume": self.attempt.sum_volume,
-                                "min_price": round(self.attempt.min_price, self.precision),
-                                "max_price": round(self.attempt.max_price, self.precision),
+                                "min_price": round(
+                                    self.attempt.min_price, self.precision
+                                ),
+                                "max_price": round(
+                                    self.attempt.max_price, self.precision
+                                ),
                             },
                         )
 
@@ -302,7 +310,6 @@ class StaticBounceWithDelta:
 
         return None
 
-    
     def reset(self) -> None:
         self.last_level_traded = None
         self.attempt = None
@@ -313,7 +320,11 @@ class StaticBounceWithDelta:
 
         support_table = tabulate(
             [
-                (f"{lvl['price']:.{self.precision}f}", len(lvl["hits"]), f"{lvl['score']:.2f}")
+                (
+                    f"{lvl['price']:.{self.precision}f}",
+                    len(lvl["hits"]),
+                    f"{lvl['score']:.2f}",
+                )
                 for lvl in self.support
             ],
             headers,
@@ -322,7 +333,11 @@ class StaticBounceWithDelta:
 
         resistance_table = tabulate(
             [
-                (f"{lvl['price']:.{self.precision}f}", len(lvl["hits"]), f"{lvl['score']:.2f}")
+                (
+                    f"{lvl['price']:.{self.precision}f}",
+                    len(lvl["hits"]),
+                    f"{lvl['score']:.2f}",
+                )
                 for lvl in self.resistance
             ],
             headers,

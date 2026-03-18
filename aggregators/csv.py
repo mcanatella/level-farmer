@@ -52,7 +52,8 @@ def _csv_aggregator_handler(
         lead = vols[leader] - vols[current]
 
         if total >= state["min_total_volume"] and (
-            lead >= state["abs_margin"] or vols[leader] >= vols[current] * (1 + state["pct_margin"])
+            lead >= state["abs_margin"]
+            or vols[leader] >= vols[current] * (1 + state["pct_margin"])
         ):
             logger.info(
                 f"Switching from {current} to {leader} at {tick.t.isoformat()} with volumes: {vols}"
