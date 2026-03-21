@@ -28,11 +28,13 @@ class StaticBounceWithDeltaParams(BaseModel):
     decay_half_life_days: float = 15.0
     precision: int = 2
     delta_window_seconds: float = 300.0
-    attempt_seconds: int = 30
-    delta_ratio_threshold: float = 0.20
-    min_response_ticks: int = 3
-    max_penetration_ticks: int = 4
-    cooldown_seconds: int = 120
+    attempt_seconds: int = (
+        30  # how long to wait for confirmation after price enters zone
+    )
+    delta_ratio_threshold: float = 0.20  # 20% imbalance by default
+    min_response_ticks: int = 3  # prove bounce/rejection
+    max_penetration_ticks: int = 4  # avoid "knife through level"
+    cooldown_seconds: int = 120  # per-level cooldown to prevent spam on chop
 
 
 StrategyParams = Union[StaticBounceParams, StaticBounceWithDeltaParams]
