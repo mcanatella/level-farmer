@@ -5,6 +5,7 @@ from pydantic import BaseModel
 
 class StaticBounceParams(BaseModel):
     tick_size: float
+    tick_value: float
     proximity_threshold: int
     reward_ticks: int
     risk_ticks: int
@@ -18,6 +19,7 @@ class StaticBounceParams(BaseModel):
 
 class StaticBounceWithDeltaParams(BaseModel):
     tick_size: float
+    tick_value: float
     proximity_threshold: int
     reward_ticks: int
     risk_ticks: int
@@ -37,6 +39,7 @@ class StaticBounceWithDeltaParams(BaseModel):
 
 class MeanReversionEmaParams(BaseModel):
     tick_size: float
+    tick_value: float
     entry_distance_ticks: int  # min ticks from EMA to trigger entry
     risk_ticks: int  # stop loss distance from entry in ticks
     kind: Literal["mean_reversion_ema"] = "mean_reversion_ema"

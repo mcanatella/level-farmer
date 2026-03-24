@@ -4,10 +4,10 @@ from .models import (
     BacktestResult,
     CsvDataSource,
     DataSource,
+    MeanReversionEmaParams,
     ProjectXDataSource,
     StaticBounceParams,
     StaticBounceWithDeltaParams,
-    MeanReversionEmaParams,
     StrategyConfig,
     StrategyParams,
 )
