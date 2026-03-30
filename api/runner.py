@@ -53,7 +53,7 @@ async def run_static_bounce_async(
     if logger is None:
         logger = logging.getLogger("static_bounce_backtest_runner")
 
-    for bt_date in config.dates:
+    for bt_date in config.get_dates():
         d = datetime.strptime(bt_date, "%Y%m%d").date()
 
         logger.info(f"Running backtest {config.name} for date: {d}")

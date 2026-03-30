@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from typing import List, Literal, Optional, Union
 
 from pydantic import BaseModel
@@ -94,8 +95,34 @@ class StrategyConfig(BaseModel):
 
 class BacktestConfig(BaseModel):
     name: str
-    dates: List[str]
+    dates: Optional[List[str]] = None
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    exclude_dates: Optional[List[str]] = None
     strategy: StrategyConfig
+
+    def get_dates(self) -> List[str]:
+        if self.dates:
+            return self.dates
+        
+        if self.start_date and self.end_date:
+            start = datetime.strptime(self.start_date, "%Y%m%d").date()
+            end = datetime.strptime(self.end_date, "%Y%m%d").date()
+
+            result = []
+            d = start
+            while d <= end:
+                if d.weekday() != 5:  # Skip Saturdays
+                    result.append(d.strftime("%Y%m%d"))
+                d += timedelta(days=1)
+        else:
+            raise ValueError("BacktestConfig requires either 'dates' or both 'start_date' and 'end_date'")
+        
+        if self.exclude_dates:
+            exclude_set = set(self.exclude_dates)
+            result = [d for d in result if d not in exclude_set]
+
+        return result
 
 
 class BacktestResult(BaseModel):
