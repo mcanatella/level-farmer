@@ -2,9 +2,9 @@ import logging
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
+from api.models import StrategyParams
 from calculations import LiveEma
 from core import Tick
-from models import StrategyParams
 
 
 class MeanReversionEma:

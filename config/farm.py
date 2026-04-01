@@ -1,8 +1,9 @@
+from typing import List
+
 import yaml
 from pydantic import BaseModel
 
-from models import StrategyConfig
-from typing import List
+from api.models import StrategyConfig
 
 
 class FarmSettings(BaseModel):

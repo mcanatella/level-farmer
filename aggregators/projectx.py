@@ -3,7 +3,7 @@ import math
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
-from models import AggregationParams
+from api.models import AggregationParams
 from projectx_client import MarketData
 
 

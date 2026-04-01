@@ -1,6 +1,6 @@
 from .backtest import BacktestSettings
-from .farm import FarmSettings
 from .discover import DiscoverSettings
+from .farm import FarmSettings
 from .logging import (
     init_backtest_logger,
     init_null_logger,

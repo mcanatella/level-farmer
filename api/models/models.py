@@ -104,7 +104,7 @@ class BacktestConfig(BaseModel):
     def get_dates(self) -> List[str]:
         if self.dates:
             return self.dates
-        
+
         if self.start_date and self.end_date:
             start = datetime.strptime(self.start_date, "%Y%m%d").date()
             end = datetime.strptime(self.end_date, "%Y%m%d").date()
@@ -116,8 +116,10 @@ class BacktestConfig(BaseModel):
                     result.append(d.strftime("%Y%m%d"))
                 d += timedelta(days=1)
         else:
-            raise ValueError("BacktestConfig requires either 'dates' or both 'start_date' and 'end_date'")
-        
+            raise ValueError(
+                "BacktestConfig requires either 'dates' or both 'start_date' and 'end_date'"
+            )
+
         if self.exclude_dates:
             exclude_set = set(self.exclude_dates)
             result = [d for d in result if d not in exclude_set]

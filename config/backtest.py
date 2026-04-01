@@ -3,7 +3,7 @@ from typing import List
 import yaml
 from pydantic import BaseModel
 
-from models import BacktestConfig
+from api.models import BacktestConfig
 
 
 class BacktestSettings(BaseModel):
