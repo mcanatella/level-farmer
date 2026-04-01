@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import List
 
 import pytest
+
 from api.models import (
     AggregationParams,
     BacktestConfig,
@@ -12,9 +13,9 @@ from api.models import (
     StaticBounceParams,
     StrategyConfig,
 )
+from config import init_null_logger
 
 from . import run_static_bounce_async
-from config import init_null_logger
 
 
 def run_static_bounce_backtest(

@@ -1,6 +1,6 @@
 import argparse
 
-from backtest import build_strategy, build_aggregator
+from backtest import build_aggregator, build_strategy
 from config import FarmSettings, init_strucutred_logger
 
 

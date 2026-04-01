@@ -1,12 +1,12 @@
 import logging
+from datetime import datetime, timedelta
+from typing import Any, Dict, List
 
 from aggregators import CsvAggregator, ProjectXAggregator
 from api.models import StrategyConfig
 from core import Aggregator, Strategy
-from datetime import datetime, timedelta
 from projectx_client import Auth, MarketData
 from strategies import MeanReversionEma, StaticBounce, StaticBounceWithDelta
-from typing import List, Dict, Any
 
 
 def build_aggregator(
@@ -40,6 +40,7 @@ def build_aggregator(
         )
 
     return aggregator
+
 
 def build_strategy(
     config: StrategyConfig, logger: logging.Logger, candles: List[Dict[str, Any]]

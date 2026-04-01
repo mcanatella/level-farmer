@@ -1,6 +1,6 @@
 import argparse
 
-from backtest.helpers import build_strategy, build_aggregator
+from backtest.helpers import build_aggregator, build_strategy
 from config import DiscoverSettings, init_backtest_logger
 
 
