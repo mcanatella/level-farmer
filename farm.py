@@ -18,7 +18,7 @@ def main(args):
     if strategy_conf is None:
         raise ValueError(f"Farmer '{args.name}' not found in configuration")
 
-    farmer = Farmer(strategy_conf, logger)
+    farmer = Farmer(logger, strategy_conf)
 
     farmer.start()
 

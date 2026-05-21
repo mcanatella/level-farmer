@@ -1,13 +1,15 @@
 import logging
 import time as t
 from datetime import datetime
-from typing import Callable, Dict, Any
+from typing import Any, Callable, Dict
 
 from signalrcore.hub_connection_builder import HubConnectionBuilder
 
 from api.models import TickerParams
 from core.types import Tick
 from projectx_client import Auth
+
+from .state import TickerState
 
 
 class ProjectXTicker:
@@ -16,12 +18,17 @@ class ProjectXTicker:
         logger: logging.Logger,
         params: TickerParams,
         handler: Callable,
-        handler_state: Dict[str, Any] = None,
+        state: TickerState,
     ) -> None:
+        if params.data_source.kind != "projectx":
+            raise ValueError(
+                f"Invalid data source for ProjectXTicker: {params.data_source.kind}"
+            )
+
         self.logger = logger
         self.params = params
         self.handler = handler
-        self.handler_state = handler_state
+        self.state = state
 
         self.jwt_token = Auth(
             base_url=params.data_source.base_url,
@@ -88,28 +95,26 @@ class ProjectXTicker:
             f"subscribed to contract {self.params.data_source.contract_id}",
             extra={"event": "market_hub_subscribe"},
         )
-    
 
     def on_close(self):
         self.logger.info(
             "user disconnected from market hub",
             extra={"event": "market_hub_disconnect"},
         )
-    
 
     def on_error(self, error):
         self.logger.error(
             "market hub error",
             extra={"event": "market_hub_error", "error": error.error},
         )
-    
+
     def on_trade(self, args):
         contract_id, trades = args
         for t in trades:
             # Ignore non-standard trades
             if t["type"] > 1:
                 continue
-            
+
             tick = Tick(
                 t=datetime.fromisoformat(t["timestamp"].replace("Z", "+00:00")),
                 price=t["price"],
@@ -118,4 +123,4 @@ class ProjectXTicker:
                 symbol=t["symbolId"],
             )
 
-            self.handler(tick, self.logger, self.handler_state)
+            self.handler(tick, self.logger, self.state)

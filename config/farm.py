@@ -29,5 +29,8 @@ class FarmSettings(BaseModel):
         )
 
         parser.add_argument(
-            "--level", type=str, default="INFO", help="Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)"
+            "--level",
+            type=str,
+            default="INFO",
+            help="Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)",
         )

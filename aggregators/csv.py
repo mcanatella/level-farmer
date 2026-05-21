@@ -6,7 +6,8 @@ from typing import Any, Dict, List
 
 from api.models import AggregationParams, TickerParams
 from core import Tick, run_engine
-from tickers import CsvTicker
+from strategies import Dummy
+from tickers import CsvTicker, TickerState
 
 FNAME_PREFIX = "glbx-mdp3-"
 FNAME_POSTFIX = ".trades.csv"
@@ -28,17 +29,17 @@ def _parse_yyyymmdd(s: str) -> date:
 
 
 def _csv_aggregator_handler(
-    tick: Tick, logger: logging.Logger, state: Dict[str, Any]
+    tick: Tick, logger: logging.Logger, state: TickerState
 ) -> None:
     """
     Aggregation handler that builds OHLCV candles in-memory as it streams ticks.
     The bucket timestamp is the floor of the tick time to the nearest candle length.
     """
-    bkt = _floor_min(tick.t, state["candle_length"]), tick.symbol
-    rec = state["buckets"].get(bkt)
+    bkt = _floor_min(tick.t, state.candle_length), tick.symbol
+    rec = state.buckets.get(bkt)
     if rec is None:
         # open=first price, high/low init to price, close updates, volume sums
-        state["buckets"][bkt] = {
+        state.buckets[bkt] = {
             "o": tick.price,
             "h": tick.price,
             "l": tick.price,
@@ -101,10 +102,13 @@ class CsvAggregator:
             if self.start_date <= d <= self.end_date:
                 dates.append(d)
 
-        state: Dict[str, Any] = {
-            "buckets": buckets,
-            "candle_length": self.params.candle_length,
-        }
+        strategy = Dummy()
+
+        state: TickerState = TickerState(
+            strategy,
+            buckets=buckets,
+            candle_length=self.params.candle_length,
+        )
 
         for d in dates:
             ticker = CsvTicker(self.logger, self.ticker_params, d.strftime("%Y%m%d"))

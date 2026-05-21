@@ -48,11 +48,7 @@ async def _run_backtest_async_without_seeding(
         handler = strategy.get_backtest_handler()
 
         # Initialize / reset handler state
-        state: TickerState = TickerState(
-            strategy=strategy,
-            total_pnl=0.00,
-            position=None,
-        )
+        state: TickerState = TickerState(strategy=strategy)
 
         ticker = CsvTicker(logger, config.strategy.ticker_params, bt_date)
 
@@ -122,11 +118,7 @@ async def _run_backtest_async_with_seeding(
         handler = strategy.get_backtest_handler()
 
         # Initialize / reset handler state
-        state: TickerState = TickerState(
-            strategy=strategy,
-            total_pnl=0.00,
-            position=None,
-        )
+        state: TickerState = TickerState(strategy=strategy)
 
         ticker = CsvTicker(logger, config.strategy.ticker_params, bt_date)
 

@@ -5,20 +5,19 @@ from zoneinfo import ZoneInfo
 from colorama import Fore
 from tabulate import tabulate
 
-from api.models import StrategyParams
+from api.models import StaticBounceParams
 from calculations import calculate_static_levels
 from config import log_with_color
-from core import Tick
-from tickers import TickerState, Position, Entry
+from core import Entry, Position, Signal, Tick
+from tickers import TickerState
 
-from .signals import Signal
 
 class StaticBounce:
     def __init__(
         self,
         logger: logging.Logger,
         candles: List[Dict[str, Any]],
-        params: StrategyParams,
+        params: StaticBounceParams,
     ) -> None:
         if params.kind != "static_bounce":
             raise ValueError(f"Invalid strategy_params kind: {params.kind}")
@@ -70,9 +69,7 @@ class StaticBounce:
         # Last level traded to avoid retests
         self.last_level_traded: float | None = None
 
-    def check(
-        self, tick: Tick, **kwargs: Any
-    ) -> Signal | None:
+    def check(self, tick: Tick, **kwargs: Any) -> Signal | None:
         if not self.levels:
             return None
 
@@ -134,15 +131,6 @@ class StaticBounce:
 
         self.last_level_traded = level_key
 
-        # return {
-        #     "timestamp": tick.t,
-        #     "direction": direction,
-        #     "entry": entry,
-        #     "take_profit": take_profit,
-        #     "stop_loss": stop_loss,
-        #     "level": level_key,
-        # }
-
         return Signal(
             timestamp=tick.t,
             direction=direction,
@@ -155,7 +143,12 @@ class StaticBounce:
     def reset(self) -> None:
         self.last_level_traded = None
 
-    def get_backtest_handler(self) -> Callable:
+    def get_backtest_handler(
+        self,
+    ) -> Callable[[Tick, logging.Logger, TickerState], None]:
+        return static_bounce_handler
+
+    def get_live_handler(self) -> Callable[[Tick, logging.Logger, TickerState], None]:
         return static_bounce_handler
 
     def __repr__(self) -> str:
@@ -198,17 +191,18 @@ class StaticBounce:
 def static_bounce_handler(
     tick: Tick, logger: logging.Logger, state: TickerState
 ) -> None:
-    """
-    Handler for processing ticks in a StaticBounce backtest.
-    Updates the state with PnL when a position is closed.
-    """
+    if type(state.strategy) != StaticBounce:
+        raise ValueError(
+            f"Expected StaticBounce strategy in state, got {type(state.strategy)}"
+        )
+
     strategy = state.strategy
 
     # Handle position
     position = state.position
 
     if position is None:
-        signal = state.strategy.check(tick)
+        signal = strategy.check(tick)
         if signal is not None:
             state.position = Position(
                 timestamp=tick.t,
@@ -221,23 +215,23 @@ def static_bounce_handler(
             )
         return
 
-    tick_size = state.position.tick_size
-    tick_value = state.position.tick_value
-    market_price = state.position.entries[0].price
+    tick_size = position.tick_size
+    tick_value = position.tick_value
+    market_price = position.entries[0].price
 
-    price_diff = 0
-    if state.position.direction == "LONG":
-        if tick.price >= state.position.take_profit:
-            price_diff = state.position.take_profit - market_price
-        elif tick.price <= state.position.stop_loss:
-            price_diff = state.position.stop_loss - market_price
+    price_diff = 0.00
+    if position.direction == "LONG":
+        if tick.price >= position.take_profit:
+            price_diff = position.take_profit - market_price
+        elif tick.price <= position.stop_loss:
+            price_diff = position.stop_loss - market_price
         else:
             return
     else:
-        if tick.price <= state.position.take_profit:
-            price_diff = market_price - state.position.take_profit
-        elif tick.price >= state.position.stop_loss:
-            price_diff = market_price - state.position.stop_loss
+        if tick.price <= position.take_profit:
+            price_diff = market_price - position.take_profit
+        elif tick.price >= position.stop_loss:
+            price_diff = market_price - position.stop_loss
         else:
             return
 
@@ -245,10 +239,8 @@ def static_bounce_handler(
     profit_loss = round(ticks_moved * tick_value, 2)
     state.total_pnl += profit_loss
 
-    ts_start = (
-        state.position.timestamp
-        .replace(microsecond=0)
-        .astimezone(ZoneInfo("America/Chicago"))
+    ts_start = position.timestamp.replace(microsecond=0).astimezone(
+        ZoneInfo("America/Chicago")
     )
     ts_end = tick.t.replace(microsecond=0).astimezone(ZoneInfo("America/Chicago"))
 

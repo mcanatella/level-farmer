@@ -9,10 +9,9 @@ from colorama import Fore
 from api.models import VwapMeanReversionParams
 from calculations.vwap import LiveVwap
 from config import log_with_color
-from core import Tick
-from tickers import TickerState, Position, Entry
+from core.types import Entry, Position, Signal, Tick
+from tickers import TickerState
 
-from .signals import Signal
 
 @dataclass
 class BandAttempt:
@@ -121,9 +120,7 @@ class VwapMeanReversion:
         self._cooldown_until: Optional[datetime] = None
         self._paused_direction: Optional[str] = None
 
-    def check(
-        self, tick: Tick, **kwargs: Any
-    ) -> Signal | None:
+    def check(self, tick: Tick, **kwargs: Any) -> Signal | None:
         vwap_val = kwargs.get("vwap")
         std_dev = kwargs.get("std_dev")
         session_volume = kwargs.get("session_volume", 0)
@@ -260,7 +257,6 @@ class VwapMeanReversion:
             direction=direction,
             entry=entry,
             size=1,
-            profit_target=None,
             stop_target=stop_loss,
         )
 
@@ -275,7 +271,12 @@ class VwapMeanReversion:
         self._cooldown_until = None
         self._paused_direction = None
 
-    def get_backtest_handler(self) -> Callable:
+    def get_backtest_handler(
+        self,
+    ) -> Callable[[Tick, logging.Logger, TickerState], None]:
+        return vwap_mean_reversion_handler
+
+    def get_live_handler(self) -> Callable[[Tick, logging.Logger, TickerState], None]:
         return vwap_mean_reversion_handler
 
     def __repr__(self) -> str:
@@ -289,6 +290,11 @@ class VwapMeanReversion:
 def vwap_mean_reversion_handler(
     tick: Tick, logger: logging.Logger, state: TickerState
 ) -> None:
+    if type(state.strategy) != VwapMeanReversion:
+        raise ValueError(
+            f"Expected VwapMeanReversion strategy in state, got {type(state.strategy)}"
+        )
+
     strategy = state.strategy
 
     # Handler owns the VWAP update
@@ -323,25 +329,25 @@ def vwap_mean_reversion_handler(
             )
         return
 
-    tick_size = state.position.tick_size
-    tick_value = state.position.tick_value
-    market_price = state.position.entries[0].price
-    direction = state.position.direction
+    tick_size = position.tick_size
+    tick_value = position.tick_value
+    market_price = position.entries[0].price
+    direction = position.direction
     stopped_out = False
 
     if direction == "LONG":
         if tick.price >= vwap_now:
             price_diff = tick.price - market_price
-        elif tick.price <= state.position.stop_loss:
-            price_diff = state.position.stop_loss - market_price
+        elif tick.price <= position.stop_loss:
+            price_diff = position.stop_loss - market_price
             stopped_out = True
         else:
             return
     else:
         if tick.price <= vwap_now:
             price_diff = market_price - tick.price
-        elif tick.price >= state.position.stop_loss:
-            price_diff = market_price - state.position.stop_loss
+        elif tick.price >= position.stop_loss:
+            price_diff = market_price - position.stop_loss
             stopped_out = True
         else:
             return
@@ -354,10 +360,8 @@ def vwap_mean_reversion_handler(
     if stopped_out:
         strategy.on_stop_loss(direction)
 
-    ts_start = (
-        state.position.timestamp
-        .replace(microsecond=0)
-        .astimezone(ZoneInfo("America/Chicago"))
+    ts_start = position.timestamp.replace(microsecond=0).astimezone(
+        ZoneInfo("America/Chicago")
     )
     ts_end = tick.t.replace(microsecond=0).astimezone(ZoneInfo("America/Chicago"))
 

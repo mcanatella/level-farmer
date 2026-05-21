@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from typing import Any, Awaitable, Callable, Dict
+from typing import Awaitable, Callable
 
 from tickers import TickerState
 

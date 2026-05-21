@@ -6,15 +6,15 @@ from .models import (
     CsvDataSource,
     DataSource,
     EmaMeanReversionParams,
+    FarmerConfig,
     ProjectXDataSource,
     QueryConfig,
-    FarmerConfig,
     StaticBounceParams,
     StrategyConfig,
     StrategyParams,
     TickerParams,
-    VwapMeanReversionParams,
     VwapMeanReversionLadderParams,
+    VwapMeanReversionParams,
 )
 
 __all__ = [

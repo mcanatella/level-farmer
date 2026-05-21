@@ -34,7 +34,6 @@ class ProjectXAggregator:
         self.candle_length = params.candle_length
         self.unit = 2
 
-        # TODO: Define candle type instead of using a Dict
         self.candles: List[Dict[str, Any]] = []
 
     def get_candles(self) -> List[Dict[str, Any]]:

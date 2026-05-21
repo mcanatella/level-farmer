@@ -1,6 +1,6 @@
 import math
 from datetime import datetime, timedelta
-from typing import Optional, Tuple, List, Dict, Any
+from typing import Any, Dict, List, Optional, Tuple
 from zoneinfo import ZoneInfo
 
 from core import Tick
@@ -104,7 +104,7 @@ class LiveVwap:
         v = self.vwap
         sd = self.std_dev
         return (v - num_std * sd, v + num_std * sd)
-    
+
     def seed_from_candles(self, candles: List[Dict[str, Any]]) -> None:
         """
         Pre-populate VWAP accumulators from historical candles for the

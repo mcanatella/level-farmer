@@ -38,7 +38,7 @@ def run_static_bounce_backtest(
     """
     Sync wrapper so unit tests can stay non-async.
     """
-    logger = init_null_logger()
+    logger = init_null_logger("INFO")
 
     data_source = CsvDataSource(kind="csv", data_dir=str(data_dir))
 

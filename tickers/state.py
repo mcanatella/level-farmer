@@ -1,31 +1,22 @@
-from dataclasses import dataclass
+from __future__ import annotations
+
+from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Dict, Optional
 
-from core.protocols import Strategy
-
-
-@dataclass
-class Entry:
-    price: float
-    size: int
-
-
-@dataclass
-class Position:
-    timestamp: datetime
-    direction: str
-    entries: List[Entry]
-    tick_size: float
-    tick_value: float
-    take_profit: Optional[float] = None
-    stop_loss: Optional[float] = None
+if TYPE_CHECKING:
+    from core import Position, Strategy
 
 
 @dataclass
 class TickerState:
+    # Standard fields
     strategy: Strategy
     total_pnl: float = 0.0
     tick_counter: int = 0
     position: Optional[Position] = None
     prev_price: Optional[float] = None
+
+    # Aggregation fields
+    buckets: Dict[tuple[datetime, str], Dict[str, float]] = field(default_factory=dict)
+    candle_length: int = 5

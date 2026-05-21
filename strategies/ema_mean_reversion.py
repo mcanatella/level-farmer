@@ -10,10 +10,9 @@ from api.models import EmaMeanReversionParams
 from calculations.atr import LiveAtr
 from calculations.ema import LiveEma
 from config import log_with_color
-from core import Tick
-from tickers import TickerState, Position, Entry
+from core import Entry, Position, Signal, Tick
+from tickers import TickerState
 
-from .signals import Signal
 
 class EmaMeanReversion:
     """
@@ -85,9 +84,7 @@ class EmaMeanReversion:
         # Cooldown tracking
         self._cooldown_until: Optional[datetime] = None
 
-    def check(
-        self, tick: Tick, **kwargs: Any
-    ) -> Signal | None:
+    def check(self, tick: Tick, **kwargs: Any) -> Signal | None:
         ema_val = kwargs.get("ema")
         atr_val = kwargs.get("atr")
 
@@ -145,14 +142,18 @@ class EmaMeanReversion:
             direction=direction,
             entry=entry,
             size=1,
-            profit_target=None,
             stop_target=stop_loss,
         )
 
     def reset(self) -> None:
         self._cooldown_until = None
 
-    def get_backtest_handler(self) -> Callable:
+    def get_backtest_handler(
+        self,
+    ) -> Callable[[Tick, logging.Logger, TickerState], None]:
+        return mean_reversion_ema_handler
+
+    def get_live_handler(self) -> Callable[[Tick, logging.Logger, TickerState], None]:
         return mean_reversion_ema_handler
 
     def __repr__(self) -> str:
@@ -166,6 +167,11 @@ class EmaMeanReversion:
 def mean_reversion_ema_handler(
     tick: Tick, logger: logging.Logger, state: TickerState
 ) -> None:
+    if type(state.strategy) != EmaMeanReversion:
+        raise ValueError(
+            f"Expected EmaMeanReversion strategy in state, got {type(state.strategy)}"
+        )
+
     strategy = state.strategy
 
     # Handler owns the EMA and ATR updates
@@ -175,9 +181,7 @@ def mean_reversion_ema_handler(
     position = state.position
 
     if position is None:
-        signal = strategy.check(
-            tick, ema=strategy.ema.value, atr=strategy.atr.value
-        )
+        signal = strategy.check(tick, ema=strategy.ema.value, atr=strategy.atr.value)
         if signal is not None:
             state.position = Position(
                 timestamp=tick.t,
@@ -213,10 +217,8 @@ def mean_reversion_ema_handler(
     profit_loss = round(ticks_moved * tick_value, 2)
     state.total_pnl += profit_loss
 
-    ts_start = (
-        position.timestamp
-        .replace(microsecond=0)
-        .astimezone(ZoneInfo("America/Chicago"))
+    ts_start = position.timestamp.replace(microsecond=0).astimezone(
+        ZoneInfo("America/Chicago")
     )
     ts_end = tick.t.replace(microsecond=0).astimezone(ZoneInfo("America/Chicago"))
 
