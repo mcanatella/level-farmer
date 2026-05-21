@@ -2,12 +2,15 @@ import logging
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any, Callable, Dict, List, Optional
+from zoneinfo import ZoneInfo
+
+from colorama import Fore
 
 from api.models import VwapMeanReversionParams
 from calculations.vwap import LiveVwap
-from core import Tick
-
-from .handlers import vwap_mean_reversion_handler
+from config import log_with_color
+from core.types import Entry, Position, Signal, Tick
+from tickers import TickerState
 
 
 @dataclass
@@ -89,6 +92,7 @@ class VwapMeanReversion:
 
         # Core
         self.tick_size = params.tick_size
+        self.tick_value = params.tick_value
         self.precision = params.precision
         self.entry_std_dev = params.entry_std_dev
         self.max_std_dev = params.max_std_dev
@@ -96,18 +100,16 @@ class VwapMeanReversion:
         self.risk_ticks = params.risk_ticks
         self.min_session_volume = params.min_session_volume
 
-        # Delta confirmation
+        # Confirmation filters
         self.attempt_seconds = params.attempt_seconds
         self.delta_ratio_threshold = params.delta_ratio_threshold
         self.min_response_ticks = params.min_response_ticks
         self.cooldown_seconds = params.cooldown_seconds
-
-        # Volume and absorption filters
         self.min_attempt_volume = params.min_attempt_volume
         self.min_absorbed_volume = params.min_absorbed_volume
         self.absorption_ticks = params.absorption_ticks
 
-        # VWAP (session-scoped, candles not used)
+        # VWAP
         self.vwap = LiveVwap(
             session_reset_hour=params.session_reset_hour,
             session_reset_minute=params.session_reset_minute,
@@ -118,9 +120,7 @@ class VwapMeanReversion:
         self._cooldown_until: Optional[datetime] = None
         self._paused_direction: Optional[str] = None
 
-    def check(
-        self, tick: Tick, timestamp: Any = None, **kwargs: Any
-    ) -> Dict[str, Any] | None:
+    def check(self, tick: Tick, **kwargs: Any) -> Signal | None:
         vwap_val = kwargs.get("vwap")
         std_dev = kwargs.get("std_dev")
         session_volume = kwargs.get("session_volume", 0)
@@ -140,7 +140,7 @@ class VwapMeanReversion:
         now = tick.t
         delta = tick.delta()
 
-        # --- Active attempt: update and check confirmation ---
+        # If we're in an attempt, check if it's confirmed or expired
         if self.attempt is not None:
             if self.attempt.is_expired(now):
                 self.logger.debug("Attempt expired without confirmation")
@@ -148,14 +148,14 @@ class VwapMeanReversion:
             else:
                 self.attempt.on_tick(now, tick.price, delta, tick.size)
                 if self._attempt_confirmed(self.attempt):
-                    return self._enter(self.attempt, tick, vwap_val, timestamp, std_dev)
+                    return self._enter(self.attempt, tick, vwap_val, tick.t, std_dev)
                 return None
 
-        # --- Cooldown ---
+        # Check if we are in a cooldown from a recent trade
         if self._cooldown_until is not None and now < self._cooldown_until:
             return None
 
-        # --- Band breach detection ---
+        # Check if we have breached the configured vwap band for entry
         distance_std = (tick.price - vwap_val) / std_dev
         abs_distance = abs(distance_std)
 
@@ -167,11 +167,12 @@ class VwapMeanReversion:
 
         direction = "SHORT" if distance_std > 0 else "LONG"
 
-        # Directional pause: don't re-enter same side after stop-out
+        # If we are in a directional pause from a recent stop out, then ignore signals in that
+        # direction until price returns to the vwap.
         if self._paused_direction == direction:
             return None
 
-        # --- Start attempt ---
+        # Start an attempt to confirm the signal with orderflow and price action
         self.attempt = BandAttempt(
             direction=direction,
             start_t=now,
@@ -194,11 +195,11 @@ class VwapMeanReversion:
         return None
 
     def _attempt_confirmed(self, attempt: BandAttempt) -> bool:
-        # 1. Minimum volume — reject noise
+        # Check minimum volume first to avoid noise
         if attempt.sum_volume < self.min_attempt_volume:
             return False
 
-        # 2. Delta ratio in expected direction
+        # Check if delta ratio is over threshold and confirms the expected direction of the move
         dr = attempt.delta_ratio()
         if attempt.direction == "LONG":
             if dr < self.delta_ratio_threshold:
@@ -207,7 +208,7 @@ class VwapMeanReversion:
             if dr > -self.delta_ratio_threshold:
                 return False
 
-        # 3. Price response — visible bounce from worst excursion
+        # Check price response; visible bounce from worst excursion
         min_resp = self.min_response_ticks * self.tick_size
         if attempt.direction == "LONG":
             if (attempt.last_price - attempt.min_price) < min_resp:
@@ -216,7 +217,8 @@ class VwapMeanReversion:
             if (attempt.max_price - attempt.last_price) < min_resp:
                 return False
 
-        # 4. Absorption — passive defense of the level
+        # Check absorption; has there been significant volume that failed to move price beyond the
+        # absorption threshold?
         if self.min_absorbed_volume > 0:
             if attempt.absorbed_volume < self.min_absorbed_volume:
                 return False
@@ -230,7 +232,7 @@ class VwapMeanReversion:
         vwap_val: float,
         timestamp: Any,
         std_dev: float,
-    ) -> Dict[str, Any]:
+    ) -> Signal:
         direction = attempt.direction
         entry = tick.price
 
@@ -250,13 +252,13 @@ class VwapMeanReversion:
 
         self.attempt = None
 
-        return {
-            "timestamp": timestamp,
-            "direction": direction,
-            "entry": entry,
-            "take_profit": None,
-            "stop_loss": stop_loss,
-        }
+        return Signal(
+            timestamp=timestamp,
+            direction=direction,
+            entry=entry,
+            size=1,
+            stop_target=stop_loss,
+        )
 
     def on_stop_loss(self, direction: str) -> None:
         self._paused_direction = direction
@@ -269,7 +271,12 @@ class VwapMeanReversion:
         self._cooldown_until = None
         self._paused_direction = None
 
-    def get_handler(self) -> Callable:
+    def get_backtest_handler(
+        self,
+    ) -> Callable[[Tick, logging.Logger, TickerState], None]:
+        return vwap_mean_reversion_handler
+
+    def get_live_handler(self) -> Callable[[Tick, logging.Logger, TickerState], None]:
         return vwap_mean_reversion_handler
 
     def __repr__(self) -> str:
@@ -278,3 +285,92 @@ class VwapMeanReversion:
             f"std={self.vwap.std_dev:.4f}, "
             f"entry_std={self.entry_std_dev}, risk_ticks={self.risk_ticks})"
         )
+
+
+def vwap_mean_reversion_handler(
+    tick: Tick, logger: logging.Logger, state: TickerState
+) -> None:
+    if type(state.strategy) != VwapMeanReversion:
+        raise ValueError(
+            f"Expected VwapMeanReversion strategy in state, got {type(state.strategy)}"
+        )
+
+    strategy = state.strategy
+
+    # Handler owns the VWAP update
+    strategy.vwap.on_tick(tick)
+    vwap_now = strategy.vwap.vwap
+
+    # If price has crossed the vwap since the last trade, clear any directional pause
+    prev_price = state.prev_price
+    if prev_price is not None and vwap_now > 0:
+        crossed = (prev_price - vwap_now) * (tick.price - vwap_now) <= 0
+        if crossed:
+            strategy.on_vwap_touch()
+    state.prev_price = tick.price
+
+    position = state.position
+
+    if position is None:
+        signal = strategy.check(
+            tick,
+            vwap=vwap_now,
+            std_dev=strategy.vwap.std_dev,
+            session_volume=strategy.vwap.session_volume,
+        )
+        if signal is not None:
+            state.position = Position(
+                timestamp=signal.timestamp,
+                direction=signal.direction,
+                entries=[Entry(price=signal.entry, size=signal.size)],
+                tick_size=strategy.tick_size,
+                tick_value=strategy.tick_value,
+                stop_loss=signal.stop_target,
+            )
+        return
+
+    tick_size = position.tick_size
+    tick_value = position.tick_value
+    market_price = position.entries[0].price
+    direction = position.direction
+    stopped_out = False
+
+    if direction == "LONG":
+        if tick.price >= vwap_now:
+            price_diff = tick.price - market_price
+        elif tick.price <= position.stop_loss:
+            price_diff = position.stop_loss - market_price
+            stopped_out = True
+        else:
+            return
+    else:
+        if tick.price <= vwap_now:
+            price_diff = market_price - tick.price
+        elif tick.price >= position.stop_loss:
+            price_diff = market_price - position.stop_loss
+            stopped_out = True
+        else:
+            return
+
+    ticks_moved = price_diff / tick_size
+    profit_loss = round(ticks_moved * tick_value, 2)
+    state.total_pnl += profit_loss
+
+    # If we get stopped out, then pause that direction until price returns to vwap
+    if stopped_out:
+        strategy.on_stop_loss(direction)
+
+    ts_start = position.timestamp.replace(microsecond=0).astimezone(
+        ZoneInfo("America/Chicago")
+    )
+    ts_end = tick.t.replace(microsecond=0).astimezone(ZoneInfo("America/Chicago"))
+
+    log_with_color(
+        logger,
+        f"Trade completed, Start = {ts_start}, End = {ts_end}, "
+        f"PnL = ${profit_loss:.2f}, VWAP at exit = {vwap_now:.4f}",
+        Fore.GREEN if profit_loss > 0 else Fore.RED,
+        "info",
+    )
+
+    state.position = None

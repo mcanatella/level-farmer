@@ -18,26 +18,6 @@ class StaticBounceParams(BaseModel):
     precision: int = 2
 
 
-class StaticBounceWithDeltaParams(BaseModel):
-    tick_size: float
-    tick_value: float
-    proximity_threshold: int
-    reward_ticks: int
-    risk_ticks: int
-    tick_tolerance: int
-    kind: Literal["static_bounce_with_delta"] = "static_bounce_with_delta"
-    min_separation: int = 10
-    top_n: int = 10
-    decay_half_life_days: float = 15.0
-    precision: int = 2
-    delta_window_seconds: float = 300.0
-    attempt_seconds: int = 30
-    delta_ratio_threshold: float = 0.20
-    min_response_ticks: int = 3
-    max_penetration_ticks: int = 4
-    cooldown_seconds: int = 120
-
-
 class EmaMeanReversionParams(BaseModel):
     tick_size: float
     tick_value: float
@@ -78,42 +58,46 @@ class VwapMeanReversionParams(BaseModel):
     absorption_ticks: int = 2
 
 
-class VwapMeanReversionWithScalingParams(BaseModel):
+class VwapMeanReversionLadderParams(BaseModel):
     tick_size: float
     tick_value: float
-    kind: Literal["vwap_mean_reversion_with_scaling"] = (
-        "vwap_mean_reversion_with_scaling"
-    )
+    kind: Literal["vwap_mean_reversion_ladder"] = "vwap_mean_reversion_ladder"
     precision: int = 2
+
+    # Session
     session_reset_hour: int = 17
     session_reset_minute: int = 0
 
-    # Initial Entry
-    entry_std_dev: float = 2.0
-    max_std_dev: float = 4.0
-    min_std_dev: Optional[float] = None
-    risk_ticks: int = 80
+    # Entry ladder bands (in standard deviations from VWAP)
+    entry_std_1: float = 2.0  # 1 contract
+    entry_std_2: float = 2.5  # +1 contract (total 2)
+    entry_std_3: float = 3.0  # +2 contracts (total 4)
+    max_std_dev: float = 4.0  # skip entries beyond this
+    min_std_dev_value: Optional[float] = None
+
+    # TP ladder bands (price must cross INSIDE these bands toward VWAP)
+    # 1 contract closes at VWAP (no param needed)
+    tp_std_4: float = 2.0  # cut 2 at this band (when holding 4)
+    tp_std_2: float = 1.0  # cut 1 at this band (when holding 2)
+
+    # Risk
+    risk_ticks: int = 80  # hard stop from first entry, all contracts
+
+    # Session filter
     min_session_volume: int = 1000
+
+    # Cooldown filter
     cooldown_seconds: int = 300
 
-    # Trailing stop (activated on scale-in)
-    trail_ticks: int = 20
-
-    # Scale-in confirmation (delta)
-    attempt_seconds: int = 30
-    delta_ratio_threshold: float = 0.15
-    min_response_ticks: int = 2
-    min_attempt_volume: int = 50
-    min_absorbed_volume: int = 15
-    absorption_ticks: int = 2
+    # Seeding behavior for vwap
+    seed_vwap: bool = False
 
 
 StrategyParams = Union[
     StaticBounceParams,
-    StaticBounceWithDeltaParams,
     EmaMeanReversionParams,
     VwapMeanReversionParams,
-    VwapMeanReversionWithScalingParams,
+    VwapMeanReversionLadderParams,
 ]
 
 
@@ -157,6 +141,11 @@ class StrategyConfig(BaseModel):
     ticker_params: Optional[TickerParams] = None
     aggregation_params: Optional[AggregationParams] = None
     strategy_params: StrategyParams
+
+
+class FarmerConfig(BaseModel):
+    name: str
+    strategy: StrategyConfig
 
 
 class QueryConfig(BaseModel):

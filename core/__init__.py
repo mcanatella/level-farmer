@@ -1,6 +1,6 @@
 from .engine import run_engine, run_engine_async
 from .protocols import Aggregator, AsyncTicker, Strategy, Ticker
-from .types import Tick
+from .types import AddSignal, Entry, Position, Signal, Tick
 
 __all__ = [
     "Aggregator",
@@ -8,6 +8,10 @@ __all__ = [
     "Ticker",
     "AsyncTicker",
     "Strategy",
+    "Signal",
+    "AddSignal",
+    "Entry",
+    "Position",
     "run_engine",
     "run_engine_async",
 ]

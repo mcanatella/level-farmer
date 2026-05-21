@@ -1,24 +1,24 @@
 import argparse
 
-from config import FarmSettings, init_strucutred_logger
+from config import FarmSettings, init_backtest_logger
 from farm import Farmer
 
 
 def main(args):
-    logger = init_strucutred_logger()
+    logger = init_backtest_logger(args.level)
 
     settings = FarmSettings.build(args)
 
-    # Look up the specified strategy in settings and raise an error if not present
+    # Look up the specified farmer in settings and raise an error if not present
     strategy_conf = None
-    for s in settings.strategies:
-        if s.name == args.strategy:
-            strategy_conf = s
+    for farmer in settings.farmers:
+        if farmer.name == args.name:
+            strategy_conf = farmer.strategy
             break
     if strategy_conf is None:
-        raise ValueError(f"Strategy '{args.strategy}' not found in configuration")
+        raise ValueError(f"Farmer '{args.name}' not found in configuration")
 
-    farmer = Farmer(strategy_conf, logger)
+    farmer = Farmer(logger, strategy_conf)
 
     farmer.start()
 

@@ -1,6 +1,12 @@
-from typing import Any, AsyncIterator, Callable, Dict, Iterator, Protocol
+from __future__ import annotations
 
-from .types import Tick
+import logging
+from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Dict, Iterator, Protocol
+
+if TYPE_CHECKING:
+    from tickers.state import TickerState
+
+    from .types import Signal, Tick
 
 
 # Pseudo interface for anything that can stream tick objects synchronously
@@ -20,10 +26,10 @@ class Aggregator(Protocol):
 
 # Pseudo interface for anything that can implement a trading strategy
 class Strategy(Protocol):
-    def check(
-        self, tick: Tick, timestamp: Any = None, **kwargs: Any
-    ) -> Dict[str, Any] | None: ...
-
-    def reset(self) -> None: ...
-
-    def get_handler(self) -> Callable: ...
+    def check(self, tick: Tick, **kwargs: Any) -> Signal | None: ...
+    def get_backtest_handler(
+        self,
+    ) -> Callable[[Tick, logging.Logger, TickerState], None]: ...
+    def get_live_handler(
+        self,
+    ) -> Callable[[Tick, logging.Logger, TickerState], None]: ...
